@@ -1,7 +1,9 @@
 package com.api.hunter.vagas.dtos;
 
+import com.api.hunter.vagas.enums.Profile;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.Length;
 
 /*
@@ -21,7 +23,7 @@ public record CreateUser(
         @NotBlank
         @Length(min = 6)
         String password,
-        @NotBlank
-        String profile,
+        @NotNull
+        Profile profile,
         String company
 ) { }

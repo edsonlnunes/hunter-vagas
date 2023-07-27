@@ -1,5 +1,6 @@
 package com.api.hunter.vagas.models;
 
+import com.api.hunter.vagas.enums.Profile;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,5 +19,9 @@ public class User {
     private String email;
     private String password;
     private String company;
+    @Enumerated(EnumType.STRING)
+    private Profile profile;
+
+
 
 }
