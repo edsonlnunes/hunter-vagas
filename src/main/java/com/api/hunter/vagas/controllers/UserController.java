@@ -33,9 +33,34 @@ public class UserController {
     private UserRepository userRepository;
 
     @PostMapping
-    public ResponseEntity createUser(@RequestBody @Valid CreateUser newUser){
-        System.out.println(newUser);
-        return ResponseEntity.ok().build();
+    @Transactional
+    public ResponseEntity createAdminOrRecruiter(@RequestBody @Valid CreateUser newUser) {
+        if (newUser.profile().equals(Profile.RECRUITER)) {
+            if (newUser.company() == null || newUser.company().isEmpty()) {
+                return  ResponseEntity.badRequest().body("Recrutadores precisam ser de uma empresa.");
+            }
+        } else {
+            if(newUser.company() != null) {
+                return ResponseEntity.badRequest().body("Administradores não podem ter uma empresa vinculada.");
+            }
+        }
+
+        if(userRepository.existsByEmail(newUser.email())) {
+            return ResponseEntity.badRequest().body("Este e-mail já foi cadastrado!");
+        }
+
+        var user = new User(
+                null,
+                newUser.name(),
+                newUser.email(),
+                newUser.password(),
+                newUser.company(),
+                newUser.profile()
+        );
+
+        userRepository.save(user);
+
+        return ResponseEntity.ok(new UserDetail(user));
     }
 
     @GetMapping
