@@ -1,6 +1,7 @@
 package com.api.hunter.vagas.controllers;
 
 import com.api.hunter.vagas.dtos.CreateUser;
+import com.api.hunter.vagas.dtos.ErrorData;
 import com.api.hunter.vagas.dtos.UserDetail;
 import com.api.hunter.vagas.enums.Profile;
 import com.api.hunter.vagas.models.User;
@@ -37,16 +38,18 @@ public class UserController {
     public ResponseEntity createAdminOrRecruiter(@RequestBody @Valid CreateUser newUser) {
         if (newUser.profile().equals(Profile.RECRUITER)) {
             if (newUser.company() == null || newUser.company().isEmpty()) {
-                return  ResponseEntity.badRequest().body("Recrutadores precisam ser de uma empresa.");
+                return  ResponseEntity.badRequest().body(
+                        new ErrorData("company", "Campo obrigatório. Todo usuário do perfil RECRUITER precisa ter uma empresa")
+                );
             }
         } else {
             if(newUser.company() != null) {
-                return ResponseEntity.badRequest().body("Administradores não podem ter uma empresa vinculada.");
+                return ResponseEntity.badRequest().body(new ErrorData("company", "Campo desnecessário. Usuário do perfil ADMIN não podem ter uma empresa vinculada."));
             }
         }
 
         if(userRepository.existsByEmail(newUser.email())) {
-            return ResponseEntity.badRequest().body("Este e-mail já foi cadastrado!");
+            return ResponseEntity.badRequest().body(new ErrorData("email", "Este e-mail já foi cadastrado!"));
         }
 
         var user = new User(
