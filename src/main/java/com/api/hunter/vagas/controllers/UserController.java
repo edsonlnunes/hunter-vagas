@@ -9,6 +9,7 @@ import com.api.hunter.vagas.repositories.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,9 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @PostMapping
     @Transactional
     public ResponseEntity createAdminOrRecruiter(@RequestBody @Valid CreateUser newUser) {
@@ -56,7 +60,7 @@ public class UserController {
                 null,
                 newUser.name(),
                 newUser.email(),
-                newUser.password(),
+                passwordEncoder.encode(newUser.password()),
                 newUser.company(),
                 newUser.profile()
         );

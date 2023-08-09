@@ -10,9 +10,10 @@ public record UserDetail(
         String name,
         String email,
         Profile profile,
-        String company
+        String company,
+        String password
 ) {
     public UserDetail(User user){
-        this(user.getId(), user.getName(), user.getEmail(), user.getProfile(), user.getCompany());
+        this(user.getId(), user.getName(), user.getEmail(), user.getProfile(), user.getCompany(), user.getPassword());
     }
 }
