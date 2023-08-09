@@ -9,6 +9,7 @@ import com.api.hunter.vagas.repositories.UserRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -39,7 +40,8 @@ public class UserController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity createAdminOrRecruiter(@RequestBody @Valid CreateUser newUser) {
+    public ResponseEntity createAdminOrRecruiter(@AuthenticationPrincipal User userLogged, @RequestBody @Valid CreateUser newUser) {
+        System.out.println("Usuario Autenticado" + userLogged.getName());
         if (newUser.profile().equals(Profile.RECRUITER)) {
             if (newUser.company() == null || newUser.company().isEmpty()) {
                 return  ResponseEntity.badRequest().body(
