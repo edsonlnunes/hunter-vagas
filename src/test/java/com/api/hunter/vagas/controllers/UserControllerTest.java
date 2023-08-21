@@ -1,11 +1,9 @@
 package com.api.hunter.vagas.controllers;
 
-import com.api.hunter.vagas.dtos.AuthData;
-import com.api.hunter.vagas.dtos.CreateUser;
+import com.api.hunter.vagas.builders.dtos.CreateUserBuilder;
+import com.api.hunter.vagas.builders.dtos.UserBuilder;
 import com.api.hunter.vagas.enums.Profile;
-import com.api.hunter.vagas.models.User;
 import com.api.hunter.vagas.repositories.UserRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,19 +13,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 
-
-import java.util.ArrayList;
-import java.util.Collections;
-
 import static org.assertj.core.api.Assertions.assertThat;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ActiveProfiles("Test")
@@ -47,6 +40,11 @@ class UserControllerTest {
     public void afterEach() {
         userRepository.deleteAll();
     }
+
+
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Test
     @DisplayName("Deve retornar uma lista vazia")
@@ -70,24 +68,12 @@ class UserControllerTest {
     @WithMockUser
     void listCase2() throws Exception {
         // given
-        var userDto = new CreateUser(
-                "Any name",
-                "any@email.com",
-                "any_password",
-                Profile.ADMIN,
-                "Any company"
-        );
 
+        var userDto = CreateUserBuilder.init().builder();
 
         userRepository.save(
-                new User(
-                        null,
-                        userDto.name(),
-                        userDto.email(),
-                        userDto.password(),
-                        userDto.company(),
-                        userDto.profile()
-                )
+                UserBuilder.init().withPassword(passwordEncoder.encode("valid_password")).builder()
+
         );
 
         // when
@@ -114,13 +100,10 @@ class UserControllerTest {
     @DisplayName("Deve cadastrar usuario admin")
     @WithMockUser
     void createAdmin() throws Exception {
-        var createUserJson = json.writeValueAsString(new CreateUser(
-                "Any name",
-                "valid@email.com",
-                "valid_password",
-                Profile.ADMIN,
-                null
-        )
+
+        var createUserJson = json.writeValueAsString(
+                CreateUserBuilder.init().builder()
+
         );
 
         var response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
@@ -136,13 +119,9 @@ class UserControllerTest {
     @DisplayName("Deve retornar erro ao adicionar usuario admin vinculado a uma empresa")
     @WithMockUser
     void createAdminErrorCompany() throws Exception {
-        var createUserJson = json.writeValueAsString(new CreateUser(
-                        "Any name",
-                        "valid@email.com",
-                        "valid_password",
-                        Profile.ADMIN,
-                        "any_company"
-                )
+
+        var createUserJson = json.writeValueAsString(
+                CreateUserBuilder.init().withCompany("any_company").builder()
         );
 
         var response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
@@ -160,13 +139,9 @@ class UserControllerTest {
     @DisplayName("Deve cadastrar usuario recruiter")
     @WithMockUser
     void createRecruiter() throws Exception {
-        var createUserJson = json.writeValueAsString(new CreateUser(
-                        "Any name",
-                        "valid@email.com",
-                        "valid_password",
-                        Profile.RECRUITER,
-                        "company_1"
-                )
+        var createUserJson = json.writeValueAsString(
+                CreateUserBuilder.init().withCompany("company_1").withProfile(Profile.RECRUITER).builder()
+
         );
 
         var response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
@@ -182,13 +157,10 @@ class UserControllerTest {
     @DisplayName("Deve retornar erro ao cadastrar usuario recruiter sem empresa")
     @WithMockUser
     void createRecruiterErrorCompany() throws Exception {
-        var createUserJson = json.writeValueAsString(new CreateUser(
-                        "Any name",
-                        "valid@email.com",
-                        "valid_password",
-                        Profile.RECRUITER,
-                        null
-                )
+
+        var createUserJson = json.writeValueAsString(
+                CreateUserBuilder.init().withProfile(Profile.RECRUITER).builder()
+
         );
 
         var response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
@@ -205,24 +177,13 @@ class UserControllerTest {
     @WithMockUser
     void createUserErrorEmail() throws Exception {
 
-        var userDto = new CreateUser(
-                "Any name",
-                "valid@email.com",
-                "valid_password",
-                Profile.RECRUITER,
-                "company_1"
-        );
+        var userDto = CreateUserBuilder.init().builder();
+
         var createUserJson = json.writeValueAsString(userDto);
 
         userRepository.save(
-                new User(
-                        null,
-                        "new name",
-                        userDto.email(),
-                        userDto.password(),
-                        userDto.company(),
-                        userDto.profile()
-                )
+                UserBuilder.init().withPassword(passwordEncoder.encode("valid_password")).builder()
+
         );
 
 

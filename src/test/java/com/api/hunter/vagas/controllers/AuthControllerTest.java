@@ -1,14 +1,11 @@
 package com.api.hunter.vagas.controllers;
 
+import com.api.hunter.vagas.builders.dtos.CreateUserBuilder;
+import com.api.hunter.vagas.builders.dtos.UserBuilder;
 import com.api.hunter.vagas.dtos.AuthData;
-import com.api.hunter.vagas.dtos.CreateUser;
-import com.api.hunter.vagas.enums.Profile;
-import com.api.hunter.vagas.models.User;
 import com.api.hunter.vagas.repositories.UserRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,13 +46,7 @@ class AuthControllerTest {
     @DisplayName("Deve retornar token quando as informações estiverem corretas")
     void doLogin1() throws Exception {
         // given
-        var userDto = new CreateUser(
-                "Any name",
-                "valid@email.com",
-                "valid_password",
-                Profile.ADMIN,
-                "Any company"
-        );
+        var userDto = CreateUserBuilder.init().builder();
 
         var dataJson = json.writeValueAsString(
                 new AuthData(
@@ -65,14 +56,7 @@ class AuthControllerTest {
         );
 
         userRepository.save(
-                new User(
-                        null,
-                        userDto.name(),
-                        userDto.email(),
-                        passwordEncoder.encode(userDto.password()),
-                        userDto.company(),
-                        userDto.profile()
-                )
+                UserBuilder.init().withPassword(passwordEncoder.encode(userDto.password())).builder()
         );
 
         // when
@@ -90,13 +74,7 @@ class AuthControllerTest {
     @DisplayName("Deve retornar status forbidden quando informar senha incorreta")
     void doLogin2() throws Exception {
         // given
-        var userDto = new CreateUser(
-                "Any name",
-                "valid@email.com",
-                "valid_password",
-                Profile.ADMIN,
-                "Any company"
-        );
+        var userDto = CreateUserBuilder.init().builder();
 
         var dataJson = json.writeValueAsString(
                 new AuthData(
@@ -106,14 +84,8 @@ class AuthControllerTest {
         );
 
         userRepository.save(
-                new User(
-                        null,
-                        userDto.name(),
-                        userDto.email(),
-                        passwordEncoder.encode(userDto.password()),
-                        userDto.company(),
-                        userDto.profile()
-                )
+                UserBuilder.init().withPassword(passwordEncoder.encode("valid_password")).builder()
+
         );
 
         // when
@@ -131,13 +103,7 @@ class AuthControllerTest {
     @DisplayName("Deve retornar status forbidden quando informar email incorreto")
     void doLogin3() throws Exception {
         // given
-        var userDto = new CreateUser(
-                "Any name",
-                "valid@email.com",
-                "valid_password",
-                Profile.ADMIN,
-                "Any company"
-        );
+        var userDto = CreateUserBuilder.init().builder();
 
         var dataJson = json.writeValueAsString(
                 new AuthData(
@@ -147,14 +113,8 @@ class AuthControllerTest {
         );
 
         userRepository.save(
-                new User(
-                        null,
-                        userDto.name(),
-                        userDto.email(),
-                        passwordEncoder.encode(userDto.password()),
-                        userDto.company(),
-                        userDto.profile()
-                )
+                UserBuilder.init().withPassword(passwordEncoder.encode("valid_password")).builder()
+
         );
 
         // when
