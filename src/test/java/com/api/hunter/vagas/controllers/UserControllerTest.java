@@ -5,6 +5,8 @@ import com.api.hunter.vagas.dtos.CreateUser;
 import com.api.hunter.vagas.enums.Profile;
 import com.api.hunter.vagas.models.User;
 import com.api.hunter.vagas.repositories.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,10 +14,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +36,9 @@ class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper json;
 
     @Autowired
     private UserRepository userRepository;
@@ -71,16 +79,16 @@ class UserControllerTest {
         );
 
 
-//        userRepository.save(
-//                new User(
-//                        null,
-//                        userDto.name(),
-//                        userDto.email(),
-//                        userDto.password(),
-//                        userDto.company(),
-//                        userDto.profile()
-//                )
-//        );
+        userRepository.save(
+                new User(
+                        null,
+                        userDto.name(),
+                        userDto.email(),
+                        userDto.password(),
+                        userDto.company(),
+                        userDto.profile()
+                )
+        );
 
         // when
         var response = mockMvc.perform(
@@ -89,8 +97,141 @@ class UserControllerTest {
 
         // then
         assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
-        var arrayResponse = new ArrayList<>(Collections.singleton(response.getContentAsByteArray()));
-        assertThat(arrayResponse.size()).isEqualTo(1);
+//        JsonAssert.with(response.getContentAsString()).extractingJsonPathArrayValue("$.items");
+
+
+
+
+
+
+
+
+
+    }
+
+
+    @Test
+    @DisplayName("Deve cadastrar usuario admin")
+    @WithMockUser
+    void createAdmin() throws Exception {
+        var createUserJson = json.writeValueAsString(new CreateUser(
+                "Any name",
+                "valid@email.com",
+                "valid_password",
+                Profile.ADMIN,
+                null
+        )
+        );
+
+        var response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
+                .contentType(MediaType.APPLICATION_JSON).content(createUserJson)
+        ).andReturn().getResponse();
+
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+    }
+
+    @Test
+    @DisplayName("Deve retornar erro ao adicionar usuario admin vinculado a uma empresa")
+    @WithMockUser
+    void createAdminErrorCompany() throws Exception {
+        var createUserJson = json.writeValueAsString(new CreateUser(
+                        "Any name",
+                        "valid@email.com",
+                        "valid_password",
+                        Profile.ADMIN,
+                        "any_company"
+                )
+        );
+
+        var response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
+                .contentType(MediaType.APPLICATION_JSON).content(createUserJson)
+        ).andReturn().getResponse();
+
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+
+    }
+
+//  Recruiter
+
+    @Test
+    @DisplayName("Deve cadastrar usuario recruiter")
+    @WithMockUser
+    void createRecruiter() throws Exception {
+        var createUserJson = json.writeValueAsString(new CreateUser(
+                        "Any name",
+                        "valid@email.com",
+                        "valid_password",
+                        Profile.RECRUITER,
+                        "company_1"
+                )
+        );
+
+        var response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
+                .contentType(MediaType.APPLICATION_JSON).content(createUserJson)
+        ).andReturn().getResponse();
+
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.OK.value());
+
+    }
+
+    @Test
+    @DisplayName("Deve retornar erro ao cadastrar usuario recruiter sem empresa")
+    @WithMockUser
+    void createRecruiterErrorCompany() throws Exception {
+        var createUserJson = json.writeValueAsString(new CreateUser(
+                        "Any name",
+                        "valid@email.com",
+                        "valid_password",
+                        Profile.RECRUITER,
+                        null
+                )
+        );
+
+        var response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
+                .contentType(MediaType.APPLICATION_JSON).content(createUserJson)
+        ).andReturn().getResponse();
+
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
+
+    }
+
+    @Test
+    @DisplayName("Deve retornar erro ao cadastrar usuario com email já cadastrado")
+    @WithMockUser
+    void createUserErrorEmail() throws Exception {
+
+        var userDto = new CreateUser(
+                "Any name",
+                "valid@email.com",
+                "valid_password",
+                Profile.RECRUITER,
+                "company_1"
+        );
+        var createUserJson = json.writeValueAsString(userDto);
+
+        userRepository.save(
+                new User(
+                        null,
+                        "new name",
+                        userDto.email(),
+                        userDto.password(),
+                        userDto.company(),
+                        userDto.profile()
+                )
+        );
+
+
+        var response = mockMvc.perform(MockMvcRequestBuilders.post("/users")
+                .contentType(MediaType.APPLICATION_JSON).content(createUserJson)
+        ).andReturn().getResponse();
+
+
+        assertThat(response.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
 
     }
 
