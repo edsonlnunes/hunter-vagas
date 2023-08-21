@@ -40,8 +40,7 @@ public class UserController {
 
     @PostMapping
     @Transactional
-    public ResponseEntity createAdminOrRecruiter(@AuthenticationPrincipal User userLogged, @RequestBody @Valid CreateUser newUser) {
-        System.out.println("Usuario Autenticado" + userLogged.getName());
+    public ResponseEntity createAdminOrRecruiter( @RequestBody @Valid CreateUser newUser) {
         if (newUser.profile().equals(Profile.RECRUITER)) {
             if (newUser.company() == null || newUser.company().isEmpty()) {
                 return  ResponseEntity.badRequest().body(
